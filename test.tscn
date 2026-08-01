@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://c3o4onawrckmr"]
+
+[ext_resource type="PackedScene" uid="uid://burxqvdceqrsu" path="res://Microcomputer/screen.tscn" id="1_37kl0"]
+[ext_resource type="PackedScene" uid="uid://dccjf646fnua" path="res://Microcomputer/microcomputer.tscn" id="2_8uh7m"]
+
+[node name="Test" type="Node2D" unique_id=1839453784]
+
+[node name="Screen" parent="." unique_id=433427179 instance=ExtResource("1_37kl0")]
+offset_left = 158.0
+offset_top = 25.0
+offset_right = 958.0
+offset_bottom = 625.0
+resolution = Vector2(400, 300)
+
+[node name="Microcomputer" parent="." unique_id=1185470131 node_paths=PackedStringArray("screen") instance=ExtResource("2_8uh7m")]
+screen = NodePath("../Screen")
+output_resolution = Vector2(400, 300)
+
+[node name="Label" type="Label" parent="." unique_id=147225312]
+offset_left = 27.0
+offset_top = 30.0
+offset_right = 67.0
+offset_bottom = 79.0
+text = "No
+No"
+
+[node name="Label2" type="Label" parent="." unique_id=369256759]
+offset_left = 27.0
+offset_top = 100.0
+offset_right = 67.0
+offset_bottom = 123.0
+text = "TEXT"

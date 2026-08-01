@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://burxqvdceqrsu"]
+
+[ext_resource type="Script" uid="uid://cg6ijunrx4n22" path="res://Microcomputer/screen.gd" id="1_bnx8n"]
+
+[node name="Screen" type="TextureRect" unique_id=433427179]
+script = ExtResource("1_bnx8n")
