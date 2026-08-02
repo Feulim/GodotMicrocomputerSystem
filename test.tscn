@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://burxqvdceqrsu" path="res://Microcomputer/screen.tscn" id="1_37kl0"]
 [ext_resource type="PackedScene" uid="uid://dccjf646fnua" path="res://Microcomputer/microcomputer.tscn" id="2_8uh7m"]
+[ext_resource type="Script" uid="uid://cpcxsstb0rct4" path="res://Microcomputer/disk.gd" id="3_6uqi0"]
 
 [node name="Test" type="Node2D" unique_id=1839453784]
 
@@ -12,8 +13,9 @@ offset_right = 958.0
 offset_bottom = 625.0
 resolution = Vector2(400, 300)
 
-[node name="Microcomputer" parent="." unique_id=1185470131 node_paths=PackedStringArray("screen") instance=ExtResource("2_8uh7m")]
+[node name="Microcomputer" parent="." unique_id=1185470131 node_paths=PackedStringArray("screen", "disks") instance=ExtResource("2_8uh7m")]
 screen = NodePath("../Screen")
+disks = [NodePath("../Node")]
 output_resolution = Vector2(400, 300)
 
 [node name="Label" type="Label" parent="." unique_id=147225312]
@@ -30,3 +32,7 @@ offset_top = 100.0
 offset_right = 67.0
 offset_bottom = 123.0
 text = "TEXT"
+
+[node name="Node" type="Node" parent="." unique_id=1002309352]
+script = ExtResource("3_6uqi0")
+disk_id = "DISK1"

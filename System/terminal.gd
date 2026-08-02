@@ -3,6 +3,7 @@ class_name Terminal
 
 var command_executor: CommandExecutor
 var input_handler: InputHandler
+var drives_driver: DrivesDriver
 var render_command_stream: Stream
 var output_stream: Stream
 var exception_stream: Stream
@@ -25,6 +26,7 @@ func _init(p_rect: Rect2i, p_total_cells: int, p_palette: IndexedPalette,
 		   p_input_handler: InputHandler,
 		   p_render_stream: Stream, p_output_stream: Stream,
 		   p_exception_stream: Stream, p_bki_stream: Stream,
+		   p_drives_driver: DrivesDriver,
 		   p_default_bg: int = 0, p_default_fg: int = 0,
 		   p_default_attrs: int = 0, cursor_blinking: bool = true,
 		   command_history_capacity: int = 100) -> void:
@@ -37,7 +39,8 @@ func _init(p_rect: Rect2i, p_total_cells: int, p_palette: IndexedPalette,
 	output_stream = p_output_stream
 	exception_stream = p_exception_stream
 	bki_stream = p_bki_stream
-	command_executor = OSBKCommands.new(output_stream, exception_stream)
+	drives_driver = p_drives_driver
+	command_executor = OSBKCommands.new(output_stream, exception_stream, drives_driver)
 	command_executor.connect("user_input_requested", request_start)
 	command_executor.connect("command_finished", _on_command_finished)
 	input_handler.text_changed.connect(_on_text_changed)
@@ -252,8 +255,17 @@ func _on_input_finished(final_text: String) -> void:
 	command_in_work = command_executor.command_in_work
 	render_to_stream(render_command_stream)
 
+func start_terminal_work() -> void:
+	_on_command_finished()
+
 func _on_command_finished() -> void:
 	command_in_work = command_executor.command_in_work
+	if not drives_driver.current_volume_letter.is_empty():
+		output_stream.push("[" + drives_driver.current_volume_letter + ":")
+		if not drives_driver.current_relative_path.is_empty():
+			output_stream.push("/" + drives_driver.current_relative_path + "]")
+		else:
+			output_stream.push("]")
 	output_stream.push("*")
 	request_start()
 
@@ -302,6 +314,7 @@ func shutdown() -> void:
 		input_handler.disconnect("input_finished", _on_input_finished)
 	
 	input_handler = null
+	drives_driver = null
 	render_command_stream = null
 	output_stream = null
 	exception_stream = null

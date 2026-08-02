@@ -23,6 +23,7 @@ var buffer_render_command: Stream = Stream.new()
 var renderer: Renderer = null
 var input_handler: InputHandler = null
 var terminal: Terminal = null
+var drives_driver: DrivesDriver = null
 var palette: IndexedPalette = null
 
 var _current_lang_index: int = -1
@@ -101,6 +102,8 @@ func boot(_computer: Microcomputer) -> void:
 	input_handler.set_hold(true)
 	input_handler.finish_keycode = KEY_ENTER
 	
+	drives_driver = DrivesDriver.new(self)
+		
 	draw_frame()
 	
 	terminal = Terminal.new(
@@ -112,6 +115,7 @@ func boot(_computer: Microcomputer) -> void:
 		buffer_key_output,
 		buffer_key_exception,
 		buffer_key_input,
+		drives_driver,
 		contrast_color_index, accent_color_index, 0
 	)
 	terminal.connect("scrolled", draw_scrollbar)
@@ -121,8 +125,7 @@ func boot(_computer: Microcomputer) -> void:
 	write_output("[00 AT  0.00\n")
 	write_output(ESC + "[4m" + "ГОТОВНОСТЬ К РАБОТЕ" + ESC + "[24m" + "\n")
 	#write_output(ansi_string)
-	write_output("*")
-	terminal.request_start()
+	terminal.start_terminal_work()
 	draw_scrollbar()
 
 func _update_style(accent: int, subaccent: int, contrast: int) -> void:

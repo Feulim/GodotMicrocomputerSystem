@@ -3,7 +3,7 @@ class_name Microcomputer
 
 @export var screen: Screen
 @export var system: System
-@export var disks: Array[VirtualDisk] = []
+@export var disks: Array[Disk] = []
 @export var output_resolution: Vector2 = Vector2(64, 64)
 
 var _front_buffer: Image = null
@@ -163,7 +163,7 @@ func _input(event: InputEvent):
 	if event is InputEventKey and system:
 		system.input_key(event)
 
-func add_disk(disk: VirtualDisk) -> void:
+func add_disk(disk: Disk) -> void:
 	if system:
 		system.add_disk(disk)
 	disks.append(disk)
