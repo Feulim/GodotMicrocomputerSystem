@@ -26,9 +26,10 @@ func _on_user_input(user_input: String) -> void:
 
 func execute_command(command: String) -> void:
 	var args = command.split(" ")
-	var callable_command = parse_command(args)
-	if callable_command != null:
-		await callable_command.call(args)
+	if args and args.size() > 0 and not args[0].is_empty():
+		var callable_command = parse_command(args)
+		if callable_command != null:
+			await callable_command.call(args)
 	finish()
 
 func parse_command(_args: Array) -> Callable:

@@ -1,9 +1,10 @@
 extends System
 class_name OSBK
 
+const MIN_MARGIN: int = 1
 var ESC = String.chr(27)
 
-var margin: int = 1
+var margin: int = MIN_MARGIN
 var header_margin: int = 6
 var history_pages: int = 8
 
@@ -21,62 +22,20 @@ var buffer_key_exception: Stream = Stream.new()
 var buffer_render_command: Stream = Stream.new()
 
 var renderer: Renderer = null
+var disk_manager: DiskManager = null
 var input_handler: InputHandler = null
 var terminal: Terminal = null
 var palette: IndexedPalette = null
 
 var _current_lang_index: int = -1
 
-var ansi_string = (
-	ESC + "[0m" +
-	"\nОбычные цвета (текст):\n" +
-	ESC + "[30m" + "Черный" + ESC + "[0m " +
-	ESC + "[31m" + "Красный" + ESC + "[0m " +
-	ESC + "[32m" + "Зеленый" + ESC + "[0m " +
-	ESC + "[33m" + "Желтый" + ESC + "[0m " +
-	ESC + "[34m" + "Синий" + ESC + "[0m " +
-	ESC + "[35m" + "Пурпурный" + ESC + "[0m " +
-	ESC + "[36m" + "Бирюзовый" + ESC + "[0m " +
-	ESC + "[37m" + "Белый" + ESC + "[0m " +
-	"\nЯркие цвета (текст):\n" +
-	ESC + "[90m" + "Серый" + ESC + "[0m " +
-	ESC + "[91m" + "Ярко-красный" + ESC + "[0m " +
-	ESC + "[92m" + "Ярко-зеленый" + ESC + "[0m " +
-	ESC + "[93m" + "Ярко-желтый" + ESC + "[0m " +
-	ESC + "[94m" + "Ярко-синий" + ESC + "[0m " +
-	ESC + "[95m" + "Ярко-пурпурный" + ESC + "[0m " +
-	ESC + "[96m" + "Ярко-бирюзовый" + ESC + "[0m " +
-	ESC + "[97m" + "Ярко-белый" + ESC + "[0m " +
-	"\nФоновые цвета:\n" +
-	ESC + "[40m" + "Фон черный" + ESC + "[0m " +
-	ESC + "[41m" + "Фон красный" + ESC + "[0m " +
-	ESC + "[42m" + "Фон зеленый" + ESC + "[0m " +
-	ESC + "[43m" + "Фон желтый" + ESC + "[0m " +
-	ESC + "[44m" + "Фон синий" + ESC + "[0m " +
-	ESC + "[45m" + "Фон пурпурный" + ESC + "[0m " +
-	ESC + "[46m" + "Фон бирюзовый" + ESC + "[0m " +
-	ESC + "[47m" + "Фон белый" + ESC + "[0m " +
-	"\nЯркие фоны:\n" +
-	ESC + "[100m" + "Фон серый" + ESC + "[0m " +
-	ESC + "[101m" + "Фон ярко-красный" + ESC + "[0m " +
-	ESC + "[102m" + "Фон ярко-зеленый" + ESC + "[0m " +
-	ESC + "[103m" + "Фон ярко-желтый" + ESC + "[0m " +
-	ESC + "[104m" + "Фон ярко-синий" + ESC + "[0m " +
-	ESC + "[105m" + "Фон ярко-пурпурный" + ESC + "[0m " +
-	ESC + "[106m" + "Фон ярко-бирюзовый" + ESC + "[0m " +
-	ESC + "[107m" + "Фон ярко-белый" + ESC + "[0m " +
-	"\nАтрибуты:\n" +
-	ESC + "[4m" + "Подчеркнутый текст" + ESC + "[0m\n" +
-	ESC + "[9m" + "Зачеркнутый текст" + ESC + "[0m\n" +
-	ESC + "[7m" + "Инвертированный текст" + ESC + "[0m\n" +
-	ESC + "[8m" + "Невидимый текст" + ESC + "[0m (после сброса видно)" +
-	ESC + "[0m\n"
-)
-
 func boot(_computer: Microcomputer) -> void:
 	super.boot(_computer)
 	renderer = Renderer.new()
 	renderer.initialize(_computer, buffer_render_command)
+	
+	disk_manager = DiskManager.new()
+	disk_manager.initialize(self)
 	
 	palette = IndexedPalette.new([
 		Color(0.0, 0.0, 0.0, 1.0),
@@ -112,6 +71,7 @@ func boot(_computer: Microcomputer) -> void:
 		buffer_key_output,
 		buffer_key_exception,
 		buffer_key_input,
+		disk_manager,
 		contrast_color_index, accent_color_index, 0
 	)
 	terminal.connect("scrolled", draw_scrollbar)
@@ -119,22 +79,26 @@ func boot(_computer: Microcomputer) -> void:
 	write_output(ESC + "[2J" + ESC + "[H")
 	write_output("\n")
 	write_output("[00 AT  0.00\n")
-	write_output(ESC + "[4m" + "ГОТОВНОСТЬ К РАБОТЕ" + ESC + "[24m" + "\n")
-	#write_output(ansi_string)
-	write_output("*")
-	terminal.request_start()
+	write_output(ESC + "[4m" + "ГОТОВНОСТЬ К РАБОТЕ" + ESC + "[24m" + "\n\n")
+	terminal.start_work()
 	draw_scrollbar()
 
-func _update_style(accent: int, subaccent: int, contrast: int) -> void:
-	if accent == -1 and subaccent == -1 and contrast == -1:
+func _update_style(accent: int, subaccent: int, contrast: int, new_margin: int) -> void:
+	if accent == -1 and subaccent == -1 and contrast == -1 and new_margin == -1:
 		return
+	var update_terminal = false
 	if accent != -1:
 		accent_color_index = clamp(accent, 0, 15)
 	if subaccent != -1:
 		subaccent_color_index = clamp(subaccent, 0, 15)
 	if contrast != -1:
 		contrast_color_index = clamp(contrast, 0, 15)
+	if new_margin != -1:
+		margin = MIN_MARGIN + clamp(new_margin, 0, 80)
+		update_terminal = true
 	draw_frame()
+	if update_terminal:
+		terminal.set_rect(terminal_rect)
 	draw_scrollbar()
 	terminal.default_bg = contrast_color_index
 	terminal.default_fg = accent_color_index

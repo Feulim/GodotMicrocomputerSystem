@@ -3,10 +3,6 @@
 [ext_resource type="PackedScene" uid="uid://burxqvdceqrsu" path="res://Microcomputer/screen.tscn" id="1_37kl0"]
 [ext_resource type="PackedScene" uid="uid://dccjf646fnua" path="res://Microcomputer/microcomputer.tscn" id="2_8uh7m"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_8uh7m"]
-line_spacing = 0.0
-font_size = 8
-
 [node name="Test" type="Node2D" unique_id=1839453784]
 
 [node name="Screen" parent="." unique_id=433427179 instance=ExtResource("1_37kl0")]
@@ -34,11 +30,3 @@ offset_top = 100.0
 offset_right = 67.0
 offset_bottom = 123.0
 text = "TEXT"
-
-[node name="Label3" type="Label" parent="." unique_id=1940904445]
-offset_left = 970.0
-offset_top = 19.0
-offset_right = 1010.0
-offset_bottom = 42.0
-text = "TEXT"
-label_settings = SubResource("LabelSettings_8uh7m")

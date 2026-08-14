@@ -2,10 +2,21 @@
 
 [ext_resource type="Script" uid="uid://b4km1cv60skup" path="res://Microcomputer/microcomputer.gd" id="1_aepe7"]
 [ext_resource type="Script" uid="uid://vmxrqgx8s878" path="res://System/osbk_system.gd" id="2_3crrc"]
+[ext_resource type="Script" uid="uid://bfoaxtuuqnsp1" path="res://Microcomputer/virtual_disk.gd" id="3_r4x7x"]
 
-[node name="Microcomputer" type="Node2D" unique_id=1185470131 node_paths=PackedStringArray("system")]
+[node name="Microcomputer" type="Node2D" unique_id=1185470131 node_paths=PackedStringArray("system", "disks")]
+visible = false
 script = ExtResource("1_aepe7")
-system = NodePath("Node")
+system = NodePath("System")
+disks = [NodePath("Disk"), NodePath("Disk2")]
 
-[node name="Node" type="Node" parent="." unique_id=2126527768]
+[node name="System" type="Node" parent="." unique_id=2126527768]
 script = ExtResource("2_3crrc")
+
+[node name="Disk" type="Node" parent="." unique_id=2086088043]
+script = ExtResource("3_r4x7x")
+disk_id = "DISK1"
+
+[node name="Disk2" type="Node" parent="." unique_id=1359856236]
+script = ExtResource("3_r4x7x")
+disk_id = "DISK2"

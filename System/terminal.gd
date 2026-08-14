@@ -1,6 +1,7 @@
 extends TerminalBase
 class_name Terminal
 
+var disk_manager: DiskManager
 var command_executor: CommandExecutor
 var input_handler: InputHandler
 var render_command_stream: Stream
@@ -25,12 +26,14 @@ func _init(p_rect: Rect2i, p_total_cells: int, p_palette: IndexedPalette,
 		   p_input_handler: InputHandler,
 		   p_render_stream: Stream, p_output_stream: Stream,
 		   p_exception_stream: Stream, p_bki_stream: Stream,
+		   p_disk_manager: DiskManager,
 		   p_default_bg: int = 0, p_default_fg: int = 0,
 		   p_default_attrs: int = 0, cursor_blinking: bool = true,
 		   command_history_capacity: int = 100) -> void:
 	super(p_rect, p_total_cells, p_palette,
 		   p_default_bg, p_default_fg,
 		   p_default_attrs, cursor_blinking)
+	disk_manager = p_disk_manager
 	command_history = RingArray.new(command_history_capacity)
 	input_handler = p_input_handler
 	render_command_stream = p_render_stream
@@ -38,6 +41,7 @@ func _init(p_rect: Rect2i, p_total_cells: int, p_palette: IndexedPalette,
 	exception_stream = p_exception_stream
 	bki_stream = p_bki_stream
 	command_executor = OSBKCommands.new(output_stream, exception_stream)
+	command_executor.set_disk_manager(disk_manager)
 	command_executor.connect("user_input_requested", request_start)
 	command_executor.connect("command_finished", _on_command_finished)
 	input_handler.text_changed.connect(_on_text_changed)
@@ -52,14 +56,14 @@ func tick(delta: float) -> void:
 	_process_bki_events()
 	var has_output = false
 	var output_text = ""
-	if not output_stream.is_empty():
-		has_output = true
-		var data = output_stream.pop_all()
-		for item in data:
-			output_text += str(item)
 	if not exception_stream.is_empty():
 		has_output = true
 		var data = exception_stream.pop_all()
+		for item in data:
+			output_text += str(item)
+	if not output_stream.is_empty():
+		has_output = true
+		var data = output_stream.pop_all()
 		for item in data:
 			output_text += str(item)
 	if has_output:
@@ -252,8 +256,14 @@ func _on_input_finished(final_text: String) -> void:
 	command_in_work = command_executor.command_in_work
 	render_to_stream(render_command_stream)
 
+func start_work() -> void:
+	_on_command_finished()
+
 func _on_command_finished() -> void:
 	command_in_work = command_executor.command_in_work
+	var path = disk_manager.get_working_directory()
+	if path and not path.is_empty():
+		output_stream.push("[" + path.trim_suffix("/") + "]")
 	output_stream.push("*")
 	request_start()
 
